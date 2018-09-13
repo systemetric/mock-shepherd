@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
@@ -46,17 +48,19 @@ app.post("/upload/upload", upload.single("uploaded_file"), (req, res) => {
   rimraf(outPath, err => {
     err
       ? respond(err)
-      : fs.mkdir(outPath, err => {
-          err
-            ? respond(err)
-            : req.file.mimetype === "application/zip"
-              ? unzip.unzipBuffer(req.file.buffer, outPath, respond)
-              : fs.writeFile(
-                  path.join(outPath, "main.py"),
-                  req.file.buffer,
-                  respond
-                );
-        });
+      : setTimeout(() => {
+          fs.mkdir(outPath, err => {
+            err
+              ? respond(err)
+              : req.file.mimetype === "application/zip"
+                ? unzip.unzipBuffer(req.file.buffer, outPath, respond)
+                : fs.writeFile(
+                    path.join(outPath, "main.py"),
+                    req.file.buffer,
+                    respond
+                  );
+          });
+        }, 100);
   });
 });
 
