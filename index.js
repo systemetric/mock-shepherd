@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const rimraf = require("rimraf");
 const childProcess = require("child_process");
+const { createCanvas } = require("canvas");
 
 const unzip = require("./unzip");
 
@@ -96,6 +97,53 @@ app.post("/run/stop", (_req, res) => {
 
 app.get("/run/output", (_req, res) => {
   res.send(child.log);
+});
+
+const randomColourPart = () => Math.floor(Math.random() * 255);
+const randomColour = () =>
+  `rgb(${randomColourPart()},${randomColourPart()},${randomColourPart()})`;
+
+const WIDTH = 1280;
+const HEIGHT = 720;
+const BLOCK = 50;
+
+app.get("/static/output.jpg", (_req, res) => {
+  const canvas = createCanvas(WIDTH, HEIGHT);
+  const ctx = canvas.getContext("2d");
+
+  for (let y = 0; y < HEIGHT / BLOCK; y++) {
+    for (let x = 0; x < WIDTH / BLOCK; x++) {
+      ctx.fillStyle = randomColour();
+      ctx.fillRect(x * BLOCK, y * BLOCK, BLOCK, BLOCK);
+    }
+  }
+
+  const text = new Date().toLocaleTimeString();
+
+  ctx.font = "100px sans-serif";
+  let bounds = ctx.measureText(text);
+
+  const backWidth = bounds.width + 50;
+  ctx.fillStyle = "rgb(0, 0, 0)";
+  ctx.fillRect(
+    (WIDTH - backWidth) / 2,
+    (HEIGHT - (bounds.emHeightAscent + bounds.emHeightDescent)) / 2,
+    backWidth,
+    bounds.emHeightAscent + bounds.emHeightDescent
+  );
+
+  ctx.fillStyle = "white";
+  ctx.fillText(
+    text,
+    (WIDTH - bounds.width) / 2,
+    (HEIGHT + bounds.emHeightAscent - bounds.emHeightDescent) / 2
+  );
+
+  // Simulates network delay
+  setTimeout(() => {
+    res.contentType("image/jpeg");
+    canvas.createJPEGStream().pipe(res);
+  }, 500);
 });
 
 const port = parseInt(process.env.SHEPHERD_PORT) || 4000;
