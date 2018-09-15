@@ -146,7 +146,7 @@ app.get("/static/output.jpg", (_req, res) => {
   }, 500);
 });
 
-const port = parseInt(process.env.SHEPHERD_PORT) || 4000;
+const port = parseInt(process.env.SHEPHERD_PORT) || 80;
 app.listen(port, () => {
   console.log(`[INFO] Server running on port: ${port}`);
 });
