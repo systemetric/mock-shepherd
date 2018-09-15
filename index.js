@@ -65,8 +65,8 @@ app.post("/upload/upload", upload.single("uploaded_file"), (req, res) => {
   });
 });
 
-app.post("/run/run", (_req, res) => {
-  console.log("[INFO] Received run request!");
+app.post("/run/start", (_req, res) => {
+  console.log("[INFO] Received start request!");
 
   killProcess();
   child.log = "";
