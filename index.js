@@ -10,6 +10,21 @@ const { createCanvas } = require("canvas");
 
 const unzip = require("./unzip");
 
+let imageTime = Date.now();
+let logs = "Random logs\n";
+function updateImageTime() {
+  setTimeout(() => {
+    imageTime = Date.now();
+    if(logs.length < 500) {
+      logs += Math.random() + "\n";
+    } else {
+      logs = "Random logs\n";
+    }
+    updateImageTime();
+  }, (Math.floor(Math.random() * 3) + 1) * 1000);
+}
+updateImageTime();
+
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -33,6 +48,8 @@ const killProcess = () => {
     console.log("[INFO] Killed process!");
   }
 };
+
+const port = parseInt(process.argv[process.argv.length - 1]) || 8080;
 
 app.post("/upload/upload", upload.single("uploaded_file"), (req, res) => {
   killProcess();
@@ -96,7 +113,7 @@ app.post("/run/stop", (_req, res) => {
 });
 
 app.get("/run/output", (_req, res) => {
-  res.send(child.log);
+  res.send(child.log || logs);
 });
 
 const randomColourPart = () => Math.floor(Math.random() * 255);
@@ -107,7 +124,7 @@ const WIDTH = 1280;
 const HEIGHT = 720;
 const BLOCK = 50;
 
-app.get("/static/output.jpg", (_req, res) => {
+app.get("/static/image.jpg", (_req, res) => {
   const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext("2d");
 
@@ -118,7 +135,7 @@ app.get("/static/output.jpg", (_req, res) => {
     }
   }
 
-  const text = new Date().toLocaleTimeString();
+  const text = `${new Date().toLocaleTimeString()} [${port}]`;
 
   ctx.font = "100px sans-serif";
   let bounds = ctx.measureText(text);
@@ -146,7 +163,10 @@ app.get("/static/output.jpg", (_req, res) => {
   }, 500);
 });
 
-const port = parseInt(process.env.SHEPHERD_PORT) || 80;
+app.get("/static/imgtime.txt", (_req, res) => {
+  res.send(imageTime.toString());
+});
+
 app.listen(port, () => {
   console.log(`[INFO] Server running on port: ${port}`);
 });
