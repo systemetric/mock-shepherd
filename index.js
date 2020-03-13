@@ -6,9 +6,21 @@ const fs = require("fs");
 const path = require("path");
 const rimraf = require("rimraf");
 const childProcess = require("child_process");
-const { createCanvas } = require("canvas");
-
+const createCanvas = require("canvas");
 const unzip = require("./unzip");
+
+const randomColourPart = () => Math.floor(Math.random() * 255);
+const randomColour = () =>
+  `rgb(${randomColourPart()},${randomColourPart()},${randomColourPart()})`;
+
+const WIDTH = 1280;
+const HEIGHT = 720;
+const BLOCK = 50;
+
+const app = express();
+const upload = multer({ storage: multer.memoryStorage() });
+
+const outPath = path.join(__dirname, "out");
 
 let imageTime = Date.now();
 let logs = "Random logs\n";
@@ -24,11 +36,6 @@ function updateImageTime() {
   }, (Math.floor(Math.random() * 3) + 1) * 1000);
 }
 updateImageTime();
-
-const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
-
-const outPath = path.join(__dirname, "out");
 
 app.get("/", (_req, res) => res.sendFile(path.join(__dirname, "index.txt")));
 
@@ -115,14 +122,6 @@ app.post("/run/stop", (_req, res) => {
 app.get("/run/output", (_req, res) => {
   res.send(child.log || logs);
 });
-
-const randomColourPart = () => Math.floor(Math.random() * 255);
-const randomColour = () =>
-  `rgb(${randomColourPart()},${randomColourPart()},${randomColourPart()})`;
-
-const WIDTH = 1280;
-const HEIGHT = 720;
-const BLOCK = 50;
 
 app.get("/static/image.jpg", (_req, res) => {
   const canvas = createCanvas(WIDTH, HEIGHT);
