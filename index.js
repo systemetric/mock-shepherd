@@ -6,8 +6,11 @@ const fs = require("fs");
 const path = require("path");
 const rimraf = require("rimraf");
 const childProcess = require("child_process");
-const createCanvas = require("canvas");
+const Canvas = require("canvas");
 const unzip = require("./unzip");
+
+const cors = require("cors");
+var files = require(path.resolve( __dirname, "files.json"));
 
 const randomColourPart = () => Math.floor(Math.random() * 255);
 const randomColour = () =>
@@ -37,6 +40,7 @@ function updateImageTime() {
 }
 updateImageTime();
 
+app.use(cors())
 app.get("/", (_req, res) => res.sendFile(path.join(__dirname, "index.txt")));
 
 let child = {
@@ -56,7 +60,7 @@ const killProcess = () => {
   }
 };
 
-const port = parseInt(process.argv[process.argv.length - 1]) || 8080;
+const port = parseInt(process.argv[process.argv.length - 1]) || 80;
 
 app.post("/upload/upload", upload.single("uploaded_file"), (req, res) => {
   killProcess();
@@ -124,7 +128,7 @@ app.get("/run/output", (_req, res) => {
 });
 
 app.get("/static/image.jpg", (_req, res) => {
-  const canvas = createCanvas(WIDTH, HEIGHT);
+  const canvas = Canvas.createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext("2d");
 
   for (let y = 0; y < HEIGHT / BLOCK; y++) {
@@ -164,6 +168,10 @@ app.get("/static/image.jpg", (_req, res) => {
 
 app.get("/static/imgtime.txt", (_req, res) => {
   res.send(imageTime.toString());
+});
+
+app.get("/files", (_req, res) => {
+  res.json(files);
 });
 
 app.listen(port, () => {
